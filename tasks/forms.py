@@ -20,7 +20,8 @@ class TaskForm(forms.ModelForm):
 
     class Meta:
         model = Task
-        fields = ['title', 'description', 'due_date', 'is_done']
+        # Removed 'is_done' so the checkbox doesn't appear on the form
+        fields = ['title', 'description', 'due_date']
         labels = {
             'due_date': 'Due date (MM/DD/YYYY)',
         }
