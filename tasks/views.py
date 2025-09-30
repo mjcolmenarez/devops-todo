@@ -5,6 +5,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from .models import Task
+from .forms import TaskForm
 
 def signup(request):
     if request.method == "POST":
@@ -24,8 +25,7 @@ class TaskList(LoginRequiredMixin, ListView):
 
 class TaskCreate(LoginRequiredMixin, CreateView):
     model = Task
-    fields = ["title", "description", "due_date"]
-    template_name = "tasks/form.html"
+    form_class = TaskForm
     success_url = reverse_lazy("tasks:list")
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -33,7 +33,7 @@ class TaskCreate(LoginRequiredMixin, CreateView):
 
 class TaskUpdate(LoginRequiredMixin, UpdateView):
     model = Task
-    fields = ["title", "description", "due_date", "is_done"]
+    form_class = TaskForm
     template_name = "tasks/form.html"
     success_url = reverse_lazy("tasks:list")
 
