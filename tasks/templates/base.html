@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>To-Do</title></head>
+  <body>
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;padding:0;margin:0;color:#06c;text-decoration:underline;cursor:pointer;">Logout</button>
+      </form>
+    {% else %}
+      <p><a href="{% url 'login' %}">Login</a> • <a href="{% url 'tasks:signup' %}">Sign up</a></p>
+    {% endif %}
+    <hr>
+    {% block content %}{% endblock %}
+  </body>
+</html>
