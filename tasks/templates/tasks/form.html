@@ -5,6 +5,7 @@
   <form method="post" class="form-grid">
     {% csrf_token %}
     {{ form.as_p }}
+    <p class="muted">Format: MM/DD/YYYY</p>
     <div class="actions">
       <button class="btn" type="submit">Save</button>
       <a class="linkbtn" href="{% url 'tasks:list' %}">Cancel</a>
