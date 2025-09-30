@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Delete "{{ object.title }}"?</h1>
-<form method="post">
-  {% csrf_token %}
-  <button type="submit">Confirm</button>
-</form>
+<h1>Delete “{{ object.title }}”?</h1>
+<div class="card">
+  <form method="post" class="actions">
+    {% csrf_token %}
+    <button class="btn" type="submit">Confirm</button>
+    <a class="linkbtn" href="{% url 'tasks:list' %}">Cancel</a>
+  </form>
+</div>
 {% endblock %}

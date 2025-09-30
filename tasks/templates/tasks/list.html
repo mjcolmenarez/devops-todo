@@ -1,23 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Your Tasks</h1>
-<p><a href="{% url 'tasks:create' %}">+ New Task</a></p>
+<p><a class="btn" href="{% url 'tasks:create' %}">+ New Task</a></p>
 
-<ul>
+<ul class="list">
   {% for t in object_list %}
     <li>
-      <form method="post" action="{% url 'tasks:toggle' t.pk %}" style="display:inline">
+      <form method="post" action="{% url 'tasks:toggle' t.pk %}">
         {% csrf_token %}
-        <button type="submit" aria-label="Toggle done">
-          [{% if t.is_done %}✓{% else %}&nbsp;{% endif %}]
+        <button class="toggle" type="submit" aria-label="Toggle done">
+          {% if t.is_done %}✓{% else %}&nbsp;{% endif %}
         </button>
       </form>
-      <strong>{{ t.title }}</strong> — {{ t.due_date|default:"no due date" }}
-      <a href="{% url 'tasks:update' t.pk %}">edit</a>
-      <a href="{% url 'tasks:delete' t.pk %}">delete</a>
+
+      <div class="{% if t.is_done %}done{% endif %}">
+        <strong>{{ t.title }}</strong>
+        <div class="muted">{{ t.due_date|default:"no due date" }}</div>
+      </div>
+
+      <a class="linkbtn" href="{% url 'tasks:update' t.pk %}">edit</a>
+      <a class="linkbtn" href="{% url 'tasks:delete' t.pk %}">delete</a>
     </li>
   {% empty %}
-    <li>No tasks yet.</li>
+    <li class="muted">No tasks yet.</li>
   {% endfor %}
 </ul>
 {% endblock %}
