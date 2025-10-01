@@ -1,33 +1,30 @@
 {% load static %}
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>To-Do</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Inter font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-  </head>
-  <body>
-    <div class="container">
-      <div class="nav">
-        <div class="brand"><a href="{% url 'tasks:list' %}">To-Do</a></div>
-        <div class="nav-actions">
-          {% if user.is_authenticated %}
-            <form method="post" action="{% url 'logout' %}">
-              {% csrf_token %}
-              <button class="linkbtn" type="submit" aria-label="Logout">Logout</button>
-            </form>
-          {% else %}
-            <a href="{% url 'login' %}">Login</a>
-            <a href="{% url 'tasks:signup' %}">Sign up</a>
-          {% endif %}
-        </div>
-      </div>
-      <div class="hr"></div>
-
-      {% block content %}{% endblock %}
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>To-do</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+  <header class="sitebar">
+    <div class="wrap">
+      <div class="brand">✔︎ To-do</div>
+      <nav class="auth">
+        {% if user.is_authenticated %}
+          <span class="muted">Hi, {{ user.username }}</span>
+          <a class="link" href="{% url 'logout' %}">Logout</a>
+        {% else %}
+          <a class="link" href="{% url 'login' %}">Login</a>
+          <a class="link" href="{% url 'signup' %}">Sign up</a>
+        {% endif %}
+      </nav>
     </div>
-  </body>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
 </html>

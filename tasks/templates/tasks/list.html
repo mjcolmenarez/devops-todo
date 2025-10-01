@@ -1,50 +1,205 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block content %}
+  <div class="page-header">
+    <div class="title">
+      <span class="title-icon">✅</span>
+      <h1>Uni To-do list</h1>
+    </div>
+    <a class="btn primary" href="{% url 'tasks:create' %}">＋ New</a>
+  </div>
 
-<h1>Your Tasks</h1>
+  <!-- View Tabs -->
+  {% with v=request.GET.view %}
+  <div class="tabs">
+    <a class="tab {% if not v %}active{% endif %}" href="{% url 'tasks:list' %}">All Tasks</a>
+    <a class="tab {% if v == 'board' %}active{% endif %}" href="?view=board">By Status</a>
+    <a class="tab {% if v == 'checklist' %}active{% endif %}" href="?view=checklist">Checklist</a>
+  </div>
 
-<div class="actions" style="margin-bottom:12px">
-  <a class="btn" href="{% url 'tasks:create' %}">+ New</a>
-  <span class="muted">Filters:</span>
-  <a class="linkbtn" href="{% url 'tasks:list' %}">All</a>
-  <a class="linkbtn" href="?status=not_started">Not started</a>
-  <a class="linkbtn" href="?status=in_progress">In progress</a>
-  <a class="linkbtn" href="?status=done">Done</a>
-</div>
+  {% if v == "board" %}
+    {# ---------------- Board (kanban-ish) view ---------------- #}
+    <div class="board">
+      <section class="column">
+        <header class="col-head">
+          <span class="pill pill-gray">Not started</span>
+        </header>
+        <div class="cards">
+          {% for t in object_list %}
+            {% if t.status == 'not_started' %}
+            <article class="card">
+              <div class="card-title">{{ t.title }}</div>
+              <div class="badges">
+                {% if t.priority %}<span class="badge badge-red">{{ t.get_priority_display }}</span>{% endif %}
+                {% if t.task_type %}<span class="badge badge-neutral">{{ t.get_task_type_display }}</span>{% endif %}
+              </div>
+              <div class="muted small">
+                {% if t.due_date %}Due {{ t.due_date|date:"m/d/Y" }}{% if t.due_time %} {{ t.due_time|time:"g:i A" }}{% endif %}{% else %}No due date{% endif %}
+              </div>
+              <div class="row-actions">
+                <form method="post" action="{% url 'tasks:toggle' t.pk %}">{% csrf_token %}
+                  <button class="mini">Mark done</button>
+                </form>
+                <a class="mini" href="{% url 'tasks:update' t.pk %}">Edit</a>
+                <a class="mini danger" href="{% url 'tasks:delete' t.pk %}">Delete</a>
+              </div>
+            </article>
+            {% endif %}
+          {% empty %}
+            <div class="muted small">No tasks.</div>
+          {% endfor %}
+        </div>
+      </section>
 
-<ul class="list">
-  {% for t in object_list %}
-    <li>
-      <form method="post" action="{% url 'tasks:toggle' t.pk %}">
-        {% csrf_token %}
-        <button class="toggle" type="submit" aria-label="Toggle done">
-          {% if t.status == "done" %}✓{% else %}&nbsp;{% endif %}
-        </button>
-      </form>
+      <section class="column">
+        <header class="col-head">
+          <span class="pill pill-blue">In progress</span>
+        </header>
+        <div class="cards">
+          {% for t in object_list %}
+            {% if t.status == 'in_progress' %}
+            <article class="card">
+              <div class="card-title">{{ t.title }}</div>
+              <div class="badges">
+                {% if t.priority %}<span class="badge badge-red">{{ t.get_priority_display }}</span>{% endif %}
+                {% if t.task_type %}<span class="badge badge-neutral">{{ t.get_task_type_display }}</span>{% endif %}
+              </div>
+              <div class="muted small">
+                {% if t.due_date %}Due {{ t.due_date|date:"m/d/Y" }}{% if t.due_time %} {{ t.due_time|time:"g:i A" }}{% endif %}{% else %}No due date{% endif %}
+              </div>
+              <div class="row-actions">
+                <form method="post" action="{% url 'tasks:toggle' t.pk %}">{% csrf_token %}
+                  <button class="mini">Mark done</button>
+                </form>
+                <a class="mini" href="{% url 'tasks:update' t.pk %}">Edit</a>
+                <a class="mini danger" href="{% url 'tasks:delete' t.pk %}">Delete</a>
+              </div>
+            </article>
+            {% endif %}
+          {% empty %}
+            <div class="muted small">No tasks.</div>
+          {% endfor %}
+        </div>
+      </section>
 
-      <div class="{% if t.status == 'done' %}done{% endif %}">
-        <strong>{{ t.title }}</strong>
-        <div class="muted">
-          {% if t.due_date %}
-            {{ t.due_date|date:"m/d/Y" }}{% if t.due_time %} {{ t.due_time|time:"g:i A" }}{% endif %}
+      <section class="column">
+        <header class="col-head">
+          <span class="pill pill-green">Done</span>
+        </header>
+        <div class="cards">
+          {% for t in object_list %}
+            {% if t.status == 'done' %}
+            <article class="card done">
+              <div class="card-title">{{ t.title }}</div>
+              <div class="badges">
+                {% if t.priority %}<span class="badge badge-red">{{ t.get_priority_display }}</span>{% endif %}
+                {% if t.task_type %}<span class="badge badge-neutral">{{ t.get_task_type_display }}</span>{% endif %}
+              </div>
+              <div class="muted small">
+                {% if t.due_date %}Due {{ t.due_date|date:"m/d/Y" }}{% if t.due_time %} {{ t.due_time|time:"g:i A" }}{% endif %}{% else %}No due date{% endif %}
+              </div>
+              <div class="row-actions">
+                <form method="post" action="{% url 'tasks:toggle' t.pk %}">{% csrf_token %}
+                  <button class="mini">Undo</button>
+                </form>
+                <a class="mini" href="{% url 'tasks:update' t.pk %}">Edit</a>
+                <a class="mini danger" href="{% url 'tasks:delete' t.pk %}">Delete</a>
+              </div>
+            </article>
+            {% endif %}
+          {% empty %}
+            <div class="muted small">No tasks.</div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+
+  {% elif v == "checklist" %}
+    {# ---------------- Checklist view ---------------- #}
+    <ul class="checklist">
+      {% for t in object_list %}
+      <li>
+        <form method="post" action="{% url 'tasks:toggle' t.pk %}">{% csrf_token %}
+          <button class="checkbox {% if t.status == 'done' %}checked{% endif %}" aria-label="toggle"></button>
+        </form>
+        <div class="check-main">
+          <div class="check-title {% if t.status == 'done' %}muted strike{% endif %}">{{ t.title }}</div>
+          <div class="muted small">
+            {% if t.due_date %}Due {{ t.due_date|date:"m/d/Y" }}{% if t.due_time %} {{ t.due_time|time:"g:i A" }}{% endif %}{% else %}No due date{% endif %}
+          </div>
+        </div>
+        <div class="check-actions">
+          <a class="mini" href="{% url 'tasks:update' t.pk %}">Edit</a>
+          <a class="mini danger" href="{% url 'tasks:delete' t.pk %}">Delete</a>
+        </div>
+      </li>
+      {% empty %}
+        <li class="muted">No tasks yet.</li>
+      {% endfor %}
+    </ul>
+
+  {% else %}
+    {# ---------------- Table (default) view ---------------- #}
+    <div class="table">
+      <div class="thead">
+        <div class="th name">Task name</div>
+        <div class="th status">Status</div>
+        <div class="th due">Due date</div>
+        <div class="th prio">Priority</div>
+        <div class="th type">Task type</div>
+        <div class="th desc">Description</div>
+        <div class="th actions"></div>
+      </div>
+
+      {% for t in object_list %}
+      <div class="trow">
+        <div class="td name">
+          {% if t.status == 'done' %}<span class="dot dot-green"></span>{% elif t.status == 'in_progress' %}<span class="dot dot-blue"></span>{% else %}<span class="dot dot-gray"></span>{% endif %}
+          <span class="{% if t.status == 'done' %}muted strike{% endif %}">{{ t.title }}</span>
+        </div>
+
+        <div class="td status">
+          {% if t.status == 'done' %}
+            <span class="badge badge-green">Done</span>
+          {% elif t.status == 'in_progress' %}
+            <span class="badge badge-blue">In progress</span>
           {% else %}
-            no due date
+            <span class="badge badge-gray">Not started</span>
           {% endif %}
         </div>
 
-        <div class="badges" style="margin-top:6px">
-          <span class="badge">{{ t.get_status_display }}</span>
-          <span class="badge">{{ t.get_priority_display }}</span>
-          <span class="badge">{{ t.get_task_type_display }}</span>
+        <div class="td due">
+          {% if t.due_date %}
+            {{ t.due_date|date:"m/d/Y" }}{% if t.due_time %} {{ t.due_time|time:"g:i A" }}{% endif %}
+          {% else %}
+            <span class="muted">—</span>
+          {% endif %}
+        </div>
+
+        <div class="td prio">
+          {% if t.priority %}<span class="badge badge-red">{{ t.get_priority_display }}</span>{% else %}<span class="muted">—</span>{% endif %}
+        </div>
+
+        <div class="td type">
+          {% if t.task_type %}<span class="badge badge-neutral">{{ t.get_task_type_display }}</span>{% else %}<span class="muted">—</span>{% endif %}
+        </div>
+
+        <div class="td desc">{{ t.description|default:""|truncatechars:120 }}</div>
+
+        <div class="td actions">
+          <form method="post" action="{% url 'tasks:toggle' t.pk %}">{% csrf_token %}
+            <button class="mini">{% if t.status == 'done' %}Undo{% else %}Mark done{% endif %}</button>
+          </form>
+          <a class="mini" href="{% url 'tasks:update' t.pk %}">Edit</a>
+          <a class="mini danger" href="{% url 'tasks:delete' t.pk %}">Delete</a>
         </div>
       </div>
-
-      <a class="linkbtn" href="{% url 'tasks:update' t.pk %}">edit</a>
-      <a class="linkbtn" href="{% url 'tasks:delete' t.pk %}">delete</a>
-    </li>
-  {% empty %}
-    <li class="muted">No tasks yet.</li>
-  {% endfor %}
-</ul>
+      {% empty %}
+        <div class="empty muted">No tasks yet.</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}
 {% endblock %}
 
