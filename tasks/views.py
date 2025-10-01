@@ -14,8 +14,19 @@ class TaskList(LoginRequiredMixin, ListView):
     template_name = "tasks/list.html"
 
     def get_queryset(self):
-        # Only the logged-in user's tasks
-        return Task.objects.filter(user=self.request.user)
+        qs = Task.objects.filter(user=self.request.user)
+        status = self.request.GET.get("status")
+        priority = self.request.GET.get("priority")
+        ttype = self.request.GET.get("type")
+
+        if status in {"not_started", "in_progress", "done"}:
+            qs = qs.filter(status=status)
+        if priority in {"low", "medium", "high"}:
+            qs = qs.filter(priority=priority)
+        if ttype in {"homework", "work", "personal", "other"}:
+            qs = qs.filter(task_type=ttype)
+
+        return qs
 
 
 class TaskCreate(LoginRequiredMixin, CreateView):
@@ -52,8 +63,11 @@ class TaskDelete(LoginRequiredMixin, DeleteView):
 def toggle_done(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
     if request.method == "POST":
-        task.is_done = not task.is_done
-        task.save(update_fields=["is_done"])
+        # flip done and keep status in sync
+        new_val = not task.is_done
+        task.is_done = new_val
+        task.status = Task.STATUS_DONE if new_val else Task.STATUS_NOT_STARTED
+        task.save(update_fields=["is_done", "status", "updated_at"])
     return redirect("tasks:list")
 
 
