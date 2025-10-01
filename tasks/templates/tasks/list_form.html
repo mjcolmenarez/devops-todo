@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{% if object %}Rename list{% else %}Create list{% endif %}</h2>
+
+<form method="post" class="form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <label>List name {{ form.name }}</label>
+
+  <div class="actions">
+    <button class="btn" type="submit">Save</button>
+    <a class="linkbtn" href="{% url 'tasks:lists' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Your lists</h2>
+
+<p><a class="btn" href="{% url 'tasks:list_create' %}">+ New list</a></p>
+
+<ul class="list">
+  {% for l in lists %}
+    <li class="item">
+      <div class="item-main">
+        <strong class="title">{{ l.name }}</strong>
+      </div>
+      <div class="item-actions">
+        <a class="linkbtn" href="{% url 'tasks:list_update' l.pk %}">edit</a>
+        <a class="linkbtn" href="{% url 'tasks:list_delete' l.pk %}">delete</a>
+      </div>
+    </li>
+  {% empty %}
+    <li class="empty">You have no lists yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,38 +1,52 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect, get_object_or_404, render
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_POST
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
-from .models import Task
-from .forms import TaskForm
+from .forms import TaskForm, TodoListForm
+from .models import Task, TodoList
 
 
+# Allow GET logout so the menu link works (no 405).
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
+
+# ------------------ Tasks ------------------ #
 class TaskList(LoginRequiredMixin, ListView):
-    model = Task
     template_name = "tasks/list.html"
+    model = Task
+    context_object_name = "object_list"
 
     def get_queryset(self):
         qs = Task.objects.filter(user=self.request.user)
-        status = self.request.GET.get("status")
-        priority = self.request.GET.get("priority")
-        ttype = self.request.GET.get("type")
 
+        status = self.request.GET.get("status")
         if status in {"not_started", "in_progress", "done"}:
             qs = qs.filter(status=status)
-        if priority in {"low", "medium", "high"}:
-            qs = qs.filter(priority=priority)
-        if ttype in {"homework", "work", "personal", "other"}:
-            qs = qs.filter(task_type=ttype)
 
-        return qs
+        list_id = self.request.GET.get("list")
+        if list_id:
+            qs = qs.filter(todo_list_id=list_id)
+
+        # IMPORTANT: No "is_done" here
+        return qs.order_by("status", "due_date", "title")
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["lists"] = TodoList.objects.filter(user=self.request.user).order_by("name")
+        ctx["active_list_id"] = self.request.GET.get("list", "")
+        ctx["page_title"] = "To-do List"
+        return ctx
 
 
 class TaskCreate(LoginRequiredMixin, CreateView):
+    template_name = "tasks/form.html"
     model = Task
     form_class = TaskForm
-    template_name = "tasks/form.html"
     success_url = reverse_lazy("tasks:list")
 
     def form_valid(self, form):
@@ -41,9 +55,9 @@ class TaskCreate(LoginRequiredMixin, CreateView):
 
 
 class TaskUpdate(LoginRequiredMixin, UpdateView):
+    template_name = "tasks/form.html"
     model = Task
     form_class = TaskForm
-    template_name = "tasks/form.html"
     success_url = reverse_lazy("tasks:list")
 
     def get_queryset(self):
@@ -51,32 +65,60 @@ class TaskUpdate(LoginRequiredMixin, UpdateView):
 
 
 class TaskDelete(LoginRequiredMixin, DeleteView):
-    model = Task
     template_name = "tasks/confirm_delete.html"
+    model = Task
     success_url = reverse_lazy("tasks:list")
 
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)
 
 
-@login_required
-def toggle_done(request, pk):
+@require_POST
+def toggle(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
-    if request.method == "POST":
-        # flip done and keep status in sync
-        new_val = not task.is_done
-        task.is_done = new_val
-        task.status = Task.STATUS_DONE if new_val else Task.STATUS_NOT_STARTED
-        task.save(update_fields=["is_done", "status", "updated_at"])
-    return redirect("tasks:list")
+    task.status = "not_started" if task.status == "done" else "done"
+    task.save(update_fields=["status"])
+    # preserve filters if you had any in the query string
+    qs = request.META.get("QUERY_STRING", "")
+    return redirect(f"/?{qs}" if qs else reverse_lazy("tasks:list"))
 
 
-def signup(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("login")
-    else:
-        form = UserCreationForm()
-    return render(request, "registration/signup.html", {"form": form})
+# ------------------ Lists (Collections) ------------------ #
+class ListList(LoginRequiredMixin, ListView):
+    template_name = "tasks/lists.html"
+    model = TodoList
+    context_object_name = "lists"
+
+    def get_queryset(self):
+        # IMPORTANT: order by 'name', not any removed columns
+        return TodoList.objects.filter(user=self.request.user).order_by("name")
+
+
+class ListCreate(LoginRequiredMixin, CreateView):
+    template_name = "tasks/list_form.html"
+    model = TodoList
+    form_class = TodoListForm
+    success_url = reverse_lazy("tasks:lists")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+
+class ListUpdate(LoginRequiredMixin, UpdateView):
+    template_name = "tasks/list_form.html"
+    model = TodoList
+    form_class = TodoListForm
+    success_url = reverse_lazy("tasks:lists")
+
+    def get_queryset(self):
+        return TodoList.objects.filter(user=self.request.user)
+
+
+class ListDelete(LoginRequiredMixin, DeleteView):
+    template_name = "tasks/list_confirm_delete.html"
+    model = TodoList
+    success_url = reverse_lazy("tasks:lists")
+
+    def get_queryset(self):
+        return TodoList.objects.filter(user=self.request.user)

@@ -117,9 +117,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "tasks:list"   # not "tasks:List"
-LOGOUT_REDIRECT_URL = "login"
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'tasks:list'
+LOGOUT_REDIRECT_URL = 'login'   # or 'tasks:list' if you prefer
 
 
 # Default primary key field type

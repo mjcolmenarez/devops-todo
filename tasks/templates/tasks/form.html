@@ -1,14 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>{{ view.object|default:"New Task" }}</h1>
-<div class="card">
-  <form method="post" class="form-grid">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <div class="actions">
-      <button class="btn" type="submit">Save</button>
-      <a class="linkbtn" href="{% url 'tasks:list' %}">Cancel</a>
+<h2>{% if object %}Edit task{% else %}New task{% endif %}</h2>
+
+<form method="post" class="form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="grid">
+    <div class="col">
+      <label>Task title {{ form.title }}</label>
+      <label>Description {{ form.description }}</label>
+      <div class="row">
+        <label>Status {{ form.status }}</label>
+        <label>Priority {{ form.priority }}</label>
+        <label>Task type {{ form.task_type }}</label>
+      </div>
+      <div class="row">
+        <label>Due date {{ form.due_date }}</label>
+        <label>Due time {{ form.due_time }}</label>
+      </div>
+      <label>List {{ form.todo_list }}</label>
     </div>
-  </form>
-</div>
+  </div>
+
+  <div class="actions">
+    <button class="btn" type="submit">Save</button>
+    <a class="linkbtn" href="{% url 'tasks:list' %}">Cancel</a>
+  </div>
+</form>
 {% endblock %}
