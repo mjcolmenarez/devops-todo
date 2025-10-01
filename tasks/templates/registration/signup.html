@@ -1,15 +1,58 @@
-{% extends "base.html" %}
-{% block content %}
-<h1>Sign up</h1>
-<div class="card">
-  <form method="post" class="form-grid">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <div class="actions">
-      <button class="btn" type="submit">Create account</button>
-      <span class="muted">or</span>
-      <a class="linkbtn" href="{% url 'login' %}">Login</a>
-    </div>
-  </form>
-</div>
-{% endblock %}
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign up</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <style>
+    /* Small page-specific nudge so it matches your login look */
+    .auth-card { max-width: 520px; margin: 64px auto; padding: 28px; border-radius: 16px; background: #111; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .auth-card h1 { font-size: 42px; margin: 0 0 20px; color: #f5f5f5; font-weight: 800; letter-spacing: .3px; }
+    .auth-label { display:block; margin: 18px 0 8px; color: #d9e1ff; font-weight: 600; font-size: 18px; }
+    .auth-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #2b334b; background: #eaf1ff; outline: none; }
+    .auth-btn { margin-top: 22px; background: #4a77ff; color: white; border: 0; padding: 12px 18px; border-radius: 12px; font-weight: 700; cursor: pointer; }
+    .auth-btn:hover { filter: brightness(1.05); }
+    .auth-meta { margin-top: 16px; color: #a7b0c5; font-size: 14px; }
+    .auth-meta a { color: #9ec3ff; text-decoration: none; }
+    .errors { margin-top: 10px; color: #ff8e8e; font-weight: 600; }
+  </style>
+</head>
+<body class="bg-dark">
+  <div class="auth-card">
+    <h1>Sign up</h1>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {# Username #}
+      <label class="auth-label" for="id_username">Username:</label>
+      <input class="auth-input" id="id_username" name="username" type="text" value="{{ form.username.value|default_if_none:'' }}">
+
+      {# Password1 #}
+      <label class="auth-label" for="id_password1">Password:</label>
+      <input class="auth-input" id="id_password1" name="password1" type="password">
+
+      {# Password2 #}
+      <label class="auth-label" for="id_password2">Confirm password:</label>
+      <input class="auth-input" id="id_password2" name="password2" type="password">
+
+      {# Non-field / field errors #}
+      {% if form.errors %}
+        <div class="errors">
+          {{ form.non_field_errors }}
+          {% for field in form %}
+            {% for error in field.errors %}
+              <div>{{ field.label }}: {{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <button class="auth-btn" type="submit">Create account</button>
+      <div class="auth-meta">Already have an account? <a href="{% url 'login' %}">Log in</a></div>
+    </form>
+  </div>
+</body>
+</html>

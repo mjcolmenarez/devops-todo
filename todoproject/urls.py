@@ -1,19 +1,30 @@
+# todoproject/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
-from tasks.views import logout_view  # GET-friendly logout
+from django.views.generic.edit import CreateView
+from django.contrib.auth.forms import UserCreationForm
+from django.urls import reverse_lazy
+
+from .views import logout_get  # <-- our GET-based logout
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # Auth
-    path(
-        "accounts/login/",
-        auth_views.LoginView.as_view(template_name="registration/login.html"),
-        name="login",
-    ),
-    path("accounts/logout/", logout_view, name="logout"),
+    # Our GET logout must come BEFORE the auth include so it wins the match
+    path("accounts/logout/", logout_get, name="logout"),
 
-    # App (NOTE: include ONLY the tasks app here; nothing else!)
+    # Built-in auth routes: /accounts/login/, password reset, etc.
+    path(
+        "accounts/signup/",
+        CreateView.as_view(
+            template_name="registration/signup.html",
+            form_class=UserCreationForm,
+            success_url=reverse_lazy("login"),
+        ),
+        name="signup",
+    ),
+    path("accounts/", include("django.contrib.auth.urls")),
+
+    # Your app
     path("", include(("tasks.urls", "tasks"), namespace="tasks")),
 ]
